@@ -1,0 +1,28 @@
+{
+    "manifest_version": 2,
+    "version": "1.0",
+    "author": "zhuanguoguo",
+    "name": "京东店铺关注助手",
+    "description": "自动领取列表中的店铺关注京豆奖励，自动取消关注。",
+    "icons": {
+        "32": "cog.png"
+    },
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://www.zuanke8.com/*"
+            ],
+            "js": ["zk8.js"]
+        },
+        {
+            "matches": [
+                "*://*.jd.com/*"
+            ],
+            "js": ["jd-follow.js"]
+        }
+    ],
+    "permissions": ["tabs"]
+}
