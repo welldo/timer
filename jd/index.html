@@ -1,0 +1,517 @@
+﻿
+<!doctype html>
+<html lang="zh-cmn-Hans">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0, width=device-width"/>
+	<!-- 忽略IOS将页面中的数字识别为电话号码 -->
+	<meta name="format-detection" content="telephone=no">
+	<!-- 跨域图片加载不了问题-->
+	<meta name="referrer" content="no-referrer" />
+	<!-- 忽略Android平台中对邮箱地址的识别 -->
+	<meta name="format-detection" content="email=no">
+	<title>抢券助手</title>
+	<script type="text/javascript">
+		document.write('<script type="application/javascript" src="js/yhqList.js?v=' + Math.random() + '" ><\/script>');
+	</script>
+	<!--<link rel="stylesheet" href="https://unpkg.com/element-ui@2.14.1/lib/theme-chalk/index.css">
+	<script src="https://unpkg.com/element-ui@2.14.1/lib/index.js"></script>-->
+	<script type="text/javascript" src="js/commonMain.js"></script>
+	<link rel="stylesheet" href="css/element.css">
+	<script src="js/element.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/index1.css"/>
+</head>
+<body>
+<div id="wrap">
+	<div class="body-wrap">
+		<el-row>
+			<el-col :span="24"><h3>JD抢券助手</h3></el-col>
+		</el-row>
+		<el-row>
+			<el-col :span="24">
+				<div class="col_main">
+					<span style="color: red;">Tips:请确保已经登录</span>
+					<a target="_blank"  href="https://passport.jd.com/uc/login?ReturnUrl=https%3A%2F%2Fu.jd.com%2FGsZXUMw" style="color: blue;text-decoration: underline;">登录JD电脑版</a>
+					<a target="_blank"  href="https://plogin.m.jd.com/login/login?appid=300&returnurl=https%3A%2F%2Fu.jd.com%2FGsZXUMw" style="color: blue;text-decoration: underline;">登录JD手机版</a>
+				</div>
+			</el-col>
+		</el-row>
+		<el-row>
+			<el-col :span="24">
+				<div class="col_main">
+					<el-button type="primary"  icon="el-icon-plus"  @click="editIndex=-1;entity=JSON.parse(JSON.stringify(defaultEntity));dialogFormVisible=true">新增抢券</el-button>
+					<el-button type="success"  icon="el-icon-document-copy"  @click="dialogFormQqlist=true">优惠券列表</el-button>
+					<el-button v-if="timeType==0"  type="warning"  icon="el-icon-sort"  @click="qhTimeType(1)">切换到京东时间</el-button>
+					<el-button v-if="timeType==1"  type="warning"  icon="el-icon-sort"  @click="qhTimeType(0)">切换到本地时间</el-button>
+					<!--<el-button type="danger"  icon="el-icon-view"  @click="window.open('https://shimo.im/docs/wy3KHkhkkqTgTq9h/read')">线报群插件等</el-button>-->
+					<el-button type="danger"  icon="el-icon-view"  @click="window.open('https://xbcc.vip/mywx/h5/st/xbq.html')">线报群插件等</el-button>
+				</div>
+			</el-col>
+		</el-row>
+		<el-row>
+			<el-col :span="24">
+				<div class="col_list">
+					<div class="col_title">
+						<h4>抢券列表</h4>
+						<span v-if="timeType==0">本地时间：</span>
+						<span v-if="timeType==1">JD时间：</span>
+						<span id="jdTimeSpan"></span>
+						<el-link class="el-icon-refresh" style="color: blue;" @click="loadJdTime(true)"></el-link>
+					</div>
+					<ul class="col_list_detail">
+						<li v-for="(site,index) in list">
+							<div class="quan_d" v-if="site.struts==0">
+								<label>{{site.title}}</label><br/>
+								<i v-if="site.info" class="info">{{site.info}}</i>
+								<span>提前{{site.tiqian}}s抢</span>
+								<span>延迟{{site.yanchi}}s停止</span>
+								<span>间隔{{site.jiange}}ms抢</span>
+								<i class="el-icon-edit" v-if="site.type==0" @click="editQ(index)"></i>
+								<i class="el-icon-close" v-if="site.type==0" @click="deleteQ(index)"></i>
+							</div>
+							<div class="quan_iframe" v-show="site.struts>0">
+								<form :action="site.url" :target="'qqiframe0'+index" :id="'qqform0'+index" method="post"  class="hide">
+									<div v-if="site.postBody&&site.postBody.indexOf('=')>0">
+										<input v-for="bd in getPostBodyList(site.postBody)" :name="bd.name" :value="bd.value" type="hidden"/>
+									</div>
+								</form>
+								<iframe  frameborder="0" :id="'qqiframe0'+index" :name="'qqiframe0'+index" :class="'hide qqiframe'+index"></iframe>
+								<iframe  frameborder="0" :id="'qqiframe1'+index" :name="'qqiframe1'+index" :class="'hide qqiframe'+index"></iframe>
+								<iframe  frameborder="0" :id="'qqiframe2'+index" :name="'qqiframe2'+index" :class="'hide qqiframe'+index"></iframe>
+							</div>
+							<div class="quan_button">
+								<el-button type="warning" size="mini" icon="el-icon-video-play" v-if="site.type==0" @click="startQqOne(index)">抢一次</el-button>
+								<!--<el-button type="primary" size="mini" icon="el-icon-video-play" v-if="site.type==0" @click="startQq(index)">立即抢</el-button>-->
+								<el-button type="danger" size="mini" icon="el-icon-video-pause" v-if="site.struts>0" @click="stopQq(index)">停止</el-button>
+							</div>
+							<div style="margin-top:20px;">
+								<el-button type="success" size="mini" icon="el-icon-time" v-if="site.type==0" @click="dsIndex=index;dialogDsForm=true">定时抢</el-button>
+								<el-button type="primary" size="mini" icon="el-icon-time" v-if="site.type==2&&site.struts==0">
+									<van-count-down  :time="site.dsDateTime-jdTime-site.tiqian*1000+1000" format="HH:mm:ss"  auto-start="false" style="color:#fff;display: inline-block;"></van-count-down>
+									&nbsp;后开始
+								</el-button>
+							</div>
+							<div style="margin-top:20px;">
+								<el-button type="danger" size="mini" icon="el-icon-video-pause" v-if="site.type==2&&site.struts==0" @click="stopQq(index)">停止定时器</el-button>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</el-col>
+		</el-row>
+		<el-row>
+			<el-col :span="24">
+				<div class="col_list" style=" min-height: 150px;">
+					<div class="col_title">
+						<h4>常见问题</h4>
+					</div>
+					<div class="cjwt">
+						<p style="color: red">1、抢券时请确保窗口处于激活状态（请不要切换标签或最小化）！</p>
+						<p>2、抢券间隔尽量不要设置太小，否则容易导致黑号！</p>
+						<p>3、可以点击抢一次按钮提前测试下链接是否正确、是否已经登录！</p>
+						<p>4、如提示not login！请确保已经登录，或者更换浏览器重试！</p>
+						<p>5、<a target="_blank" style="color: blue;text-decoration: underline;" href="https://docs.qq.com/doc/DRHJ3SFB4eUJueVFn?pub=1&dver=2.1.0">获取JD券API教程</a></p>
+					</div>
+				</div>
+			</el-col>
+		</el-row>
+		<br/>
+	</div>
+	<!--新增修改券-->
+	<van-popup v-model="dialogFormVisible"  style="width:85%;max-width:500px">
+		<div class="addForm">
+			<div>
+				<label>优惠券名称</label>
+				<el-input placeholder="请输入优惠券名称" v-model="entity.title" clearable maxlength="12" show-word-limit="true"></el-input>
+			</div>
+			<div>
+				<label>券API地址&nbsp;<a target="_blank" style="color: blue;text-decoration: underline;" href="https://docs.qq.com/doc/DRHJ3SFB4eUJueVFn?pub=1&dver=2.1.0">教程</a>
+				</label>
+				<el-input placeholder="请输入http开头的券API地址" v-model="entity.url" clearable></el-input>
+			</div>
+			<div>
+				<label>券POST参数(非必填)</label>
+				<el-input placeholder="例如:name=zs&sex=10" v-model="entity.postBody" clearable></el-input>
+			</div>
+			<div>
+				<label>备注说明</label>
+				<el-input placeholder="请输入抢券时间等备注" v-model="entity.info" clearable></el-input>
+			</div>
+			<div>
+				<label>提前抢券时间(s)</label>
+				<el-input placeholder="请输入提前抢券时间s" type="number" v-model="entity.tiqian" min="0" max="20"></el-input>
+			</div>
+			<div>
+				<label>延迟结束时间(s)</label>
+				<el-input placeholder="请输入延迟结束时间s" type="number" v-model="entity.yanchi" min="0" max="60"></el-input>
+			</div>
+			<div>
+				<label>自动抢券间隔(ms)</label>
+				<el-input placeholder="请输入抢券间隔ms" type="number" v-model="entity.jiange" min="100"></el-input>
+			</div>
+			<div class="footer">
+				<el-button @click="dialogFormVisible = false">取 消</el-button>
+				<el-button type="primary" @click="addForm">确 定</el-button>
+			</div>
+		</div>
+	</van-popup>
+	<!--修改抢券时间-->
+	<van-popup v-if="isMobile" v-model="dialogDsForm" position="bottom">
+		<div v-if="dsIndex>-1&&list[dsIndex]">
+			<van-datetime-picker type="time" @confirm="startDsQq" v-model="list[dsIndex].dsTime" :min-hour="00"  :max-hour="23" @cancel="dialogDsForm = false" ></van-datetime-picker>
+		</div>
+	</van-popup>
+	<el-dialog v-if="!isMobile" title="抢券时间" :visible.sync="dialogDsForm" width="70%" style="max-width: 1000px;">
+		<div class="addForm" v-if="dsIndex>-1&&list[dsIndex]">
+			<div>
+				<el-time-select
+						v-model="list[dsIndex].dsTime"
+						:picker-options="{start: '00:00',step: '00:01',end: '23:59'}"
+						placeholder="请选择抢券时间">
+				</el-time-select>
+			</div>
+			<div class="footer">
+				<el-button type="primary" @click="startDsQq">确 定</el-button>
+			</div>
+		</div>
+	</el-dialog>
+
+	<!--抢券列表-->
+	<van-popup v-model="dialogFormQqlist" position="right" style="width:80%;max-width:400px;height: 100%;" closeable>
+		<h3>优惠券列表</h3>
+		<ul class="yzQqlist">
+			<li v-for="site in yhqList">
+				<div class="div_left">
+					<span>{{site.title}}</span>
+					<i>{{site.info}}</i>
+				</div>
+				<div class="div_right">
+					<van-button icon="plus" type="primary" size="small" @click="kjAddEntity(site)">新增</van-button>
+				</div>
+			</li>
+		</ul>
+	</van-popup>
+</div>
+</body>
+<script>
+	var setTimeOutJd=null;
+	var myWorkerTime=null;
+	var defaultEntity={
+		title:"",
+		url:"",
+		postBody:"",
+		tiqian:2,//提前
+		yanchi:2,//延迟
+		jiange:250,//间隔ms
+		type:0,//0未开始1自动2定时3手动
+		struts:0,//0未开始1抢券中
+		dsTime:"20:00",
+		info:"",
+		threadName:null
+	};
+	var vm=new Vue({
+		el: '#wrap',
+		data: {
+			isMobile:isMobile,
+			editIndex:-1,
+			dsIndex:-1,
+			jdTime:new Date().getTime(),
+			dialogFormVisible:false,
+			dialogDsForm:false,
+			dialogFormQqlist:false,
+			entity:{},
+			list:[],
+			timeType:localStorage.getItem("timeType")||0,//0默认使用本地时间1京东时间
+			yhqList:yhqDefaultList||[]
+		},
+		created:function(){// 先加载数据
+			this.loadJdTime(false);//获取京东时间
+			if(window.localStorage){
+				this.list= JSON.parse(localStorage.getItem("jdQqList"))||[];
+			}else{
+				alert("请使用支持H5的浏览器！");
+			}
+		},
+		methods: {
+			kjAddEntity:function(obj){
+				let newEntity=$.extend(JSON.parse(JSON.stringify(defaultEntity)),obj);
+				//newEntity.postBodyList=this.getPostBodyList(newEntity.postBody);
+				this.list.push(newEntity);
+				//p(newEntity);
+				localStorage.setItem("jdQqList", JSON.stringify(this.list));//放入缓存保存
+				vm.$message({
+					message: '增加成功！',
+					type: 'success'
+				});
+				this.dialogFormQqlist=false;
+			},
+			qhTimeType:function(toType){
+				this.timeType=toType;
+				localStorage.setItem("timeType", this.timeType);//放入缓存保存
+				this.loadJdTime(true);//获取京东时间
+			},
+			loadJdTime:function(obj){
+				if(this.timeType==1){//使用京东时间
+					ajaxPost(BASEURL+"/zbh5/jdTime", {time:new Date().getTime()}, function(ret) {
+						//p(ret);
+						if(ret.errcode==0){
+							if(obj){
+								vm.$message({
+									message: '同步时间成功！',
+									type: 'success'
+								});
+							}
+							let jdTimeJson=JSON.parse(ret.jdtime);
+							//p(new Date(parseInt(jdTimeJson.currentTime2)));
+							vm.jdTime=parseInt(jdTimeJson.currentTime2);
+							//vm.jdTime=parseInt(jdTimeJson.data.t);
+						}else{
+							vm.jdTime=new Date().getTime();
+							vm.$message({
+								message: '同步时间失败，将使用电脑本地时间！',
+								type: 'warning'
+							});
+						}
+						$("#jdTimeSpan").text(new Date(vm.jdTime).Format("yyyy-MM-dd hh:mm:ss"));
+						//if(setTimeOutJd!=null)clearTimeout(setTimeOutJd);
+						//setTimeOutJd=setTimeout(function(){vm.calTime();},600);//考虑到网络延迟
+						vm.startTimeWorker();
+					});
+				}else{
+					this.jdTime=new Date().getTime();
+					//if(setTimeOutJd!=null)clearTimeout(setTimeOutJd);
+					//setTimeOutJd=setTimeout(function(){vm.calTime();},900);//考虑到网络延迟
+					this.startTimeWorker();
+				}
+
+			},
+			startTimeWorker:function(){
+				this.stopTimeWorker();
+				if(typeof(Worker) !== "undefined") {
+					myWorkerTime = new Worker("js/time.js");
+					myWorkerTime.postMessage(this.jdTime);
+					myWorkerTime.onmessage = function(event) {
+						vm.jdTime=event.data;
+						vm.calTime();
+					};
+				} else {
+					setTimeOutJd=setTimeout(function(){vm.calTime();},900);//考虑到网络延迟
+				}
+			},
+			stopTimeWorker:function(){
+				if(typeof(Worker) !== "undefined") {
+					if (myWorkerTime) {
+						myWorkerTime.terminate();
+						myWorkerTime = null;
+					}
+				}else{
+					if(setTimeOutJd!=null)clearTimeout(setTimeOutJd);
+				}
+			},
+			calTime:function(){
+				if(typeof(Worker)== "undefined") {//不支持 worker 还用原来方式
+					this.jdTime=this.jdTime+1000;
+					setTimeOutJd=setTimeout(function(){vm.calTime();},1000);
+				}
+				$("#jdTimeSpan").text(new Date(vm.jdTime).Format("yyyy-MM-dd hh:mm:ss"));
+				//定时抢券 判断哪些券需要开始
+				for(var qqi in this.list){
+					if(this.list[qqi].type==2&&this.list[qqi].struts==0){
+						if(this.timeType==0){
+							if((this.list[qqi].dsDateTime-(new Date().getTime())-this.list[qqi].tiqian*1000)<=0){
+								vm.refushQq(qqi);
+							}
+						}else{
+							if((this.list[qqi].dsDateTime-this.jdTime-this.list[qqi].tiqian*1000)<=0){
+								vm.refushQq(qqi);
+							}
+						}
+
+					}else{
+						continue;
+					}
+				}
+			},addForm:function(){
+				if(this.entity.title==""){
+					vm.$message({message: '请输入优惠券名称！',type: 'error'});
+					return false;
+				}
+				if(this.entity.url==""||this.entity.url.indexOf("http")!=0){
+					vm.$message({message: '请输入http(s)开头优惠券地址！',type: 'error'});
+					return false;
+				}
+				if(this.entity.tiqian<=-1||this.entity.tiqian>20){
+					vm.$message({message: '请输入正确的提前抢券时间！',type: 'error'});
+					return false;
+				}
+				if(this.entity.yanchi==""||this.entity.yanchi<0||this.entity.yanchi>60){
+					vm.$message({message: '请输入正确的延迟结束时间！',type: 'error'});
+					return false;
+				}
+				if(this.entity.jiange==""||this.entity.jiange<100){
+					vm.$message({message: '请输入大于100ms的抢券间隔！',type: 'error'});
+					return false;
+				}
+				if(this.editIndex>-1){
+					this.list[this.editIndex]=this.entity;
+					vm.$message({
+						message: '修改成功！',
+						type: 'success'
+					});
+				}else{
+					this.list.push(this.entity);
+					vm.$message({
+						message: '新增成功！',
+						type: 'success'
+					});
+				}
+				localStorage.setItem("jdQqList", JSON.stringify(this.list));//放入缓存保存
+				this.dialogFormVisible=false;
+				this.entity=JSON.parse(JSON.stringify(defaultEntity));
+				this.editIndex=-1;
+			},deleteQ:function(index){
+				this.list.splice(index,1);
+				localStorage.setItem("jdQqList", JSON.stringify(this.list));//放入缓存保存
+				vm.$message({
+					message: '删除成功！',
+					type: 'success'
+				});
+			},editQ:function(index){
+				this.editIndex=index;
+				this.entity=JSON.parse(JSON.stringify(this.list[index]));
+				this.dialogFormVisible=true;
+			},startQq:function(index){
+				this.list[index].type=1;
+				this.refushQq(index);
+			},startQqOne:function(index){
+				this.list[index].type=3;
+				this.list[index].struts=1;
+				Vue.nextTick(function () {
+					$(".qqiframe"+index).hide();
+					//$('#qqiframe0'+index).attr('src', vm.list[index].url).show();
+					$('#qqform0'+index).attr("target","qqiframe0"+index).submit();
+					$('#qqiframe0'+index).show();
+				})
+			},startDsQq:function(){//定时抢券
+				if(this.list[this.dsIndex]&&this.list[this.dsIndex].dsTime==""){
+					vm.$message({
+						message: '请选择抢券时间！',
+						type: 'error'
+					});
+					return false;
+				}
+				this.list[this.dsIndex].type=2;
+				this.dialogDsForm=false;
+				this.calQqTime(this.dsIndex);
+				this.dsIndex==-1;
+				localStorage.setItem("jdQqList", JSON.stringify(this.list));//放入缓存保存
+			},stopQq:function(index){
+				this.list[index].type=0;
+				this.list[index].struts=0;
+				this.list[index].yqCishu=0;
+				localStorage.setItem("jdQqList", JSON.stringify(this.list));//放入缓存保存
+				this.clearJsq(index);//清空计时器
+			},refushQq:function(index){
+				vm.$message({
+					message: '开始抢券！',
+					type: 'success'
+				});
+				this.list[index].struts=1;
+				Vue.nextTick(function () {
+					$(".qqiframe"+index).hide();
+					$('#qqiframe0'+index).show();
+					$('#qqform0'+index).attr("target","qqiframe0"+index).submit();
+					//$('#qqiframe0'+index).attr('src', vm.list[index].url).show();
+					console.log(new Date().getTime()+"抢券1");
+					if(this.isMobile){
+						toast("“"+vm.list[index].title+"”已抢1次！");
+					}else{
+						vm.$notify.success({
+							title: vm.list[index].title,
+							type: 'info',
+							message:"已抢1次！",
+							showClose: true
+						});
+					}
+				})
+				this.list[index].yqCishu=1;//已经抢券次数
+				this.clearJsq(index);//清空计时器
+				this.list[index].threadName=setInterval(function(){
+					if(vm.list[index].type==2){
+						if((vm.jdTime-vm.list[index].dsDateTime- vm.list[index].yanchi*1000)>0){//大于延后时间停止
+							vm.$message({
+								message: '定时抢券结束！',
+								type: 'info'
+							});
+							vm.stopQq(index);//清空计时器
+							return;
+						}
+					}
+					$(".qqiframe"+index).hide();
+					//$('#qqiframe'+(vm.list[index].yqCishu%3)+""+index).attr('src', vm.list[index].url).show();
+					$('#qqform0'+index).attr("target","qqiframe"+(vm.list[index].yqCishu%3)+""+index).submit();
+					$('#qqiframe'+(vm.list[index].yqCishu%3)+""+index).show();
+					vm.list[index].yqCishu++;//+1次
+					console.log(new Date().getTime()+"抢券"+vm.list[index].yqCishu);
+
+					if(vm.list[index].yqCishu>100){
+						vm.stopQq(index);//清空计时器
+						alert("抢券次数过多，请重新开始！");
+						return false;
+					}
+
+					if(this.isMobile){
+						toast("“"+vm.list[index].title+"”已抢"+vm.list[index].yqCishu+"次！");
+					}else{
+						vm.$notify.success({
+							title: vm.list[index].title,
+							type: 'info',
+							message:"已抢"+vm.list[index].yqCishu+"次！",
+							showClose: true
+						});
+					}
+				},this.list[index].jiange);
+			},clearJsq:function(index){//清空计时器
+				if(this.list[index].threadName!=null){
+					clearInterval(this.list[index].threadName);
+					this.list[index].threadName=null;
+				}
+			},calQqTime:function(index){
+				let dsTime=this.list[index].dsTime+":00";
+				let jdDateTime=new Date(this.jdTime);//jd时间
+				let dsDateTime=iosGetTime(jdDateTime.Format("yyyy-MM-dd")+" "+dsTime);
+				//alert(dsDateTime);
+				//如果定时时间小于当前时间 则+1天
+				if(dsDateTime<=this.jdTime){
+					let dsDate=new Date(dsDateTime);
+					dsDateTime=dsDate.setDate(dsDate.getDate()+1);//+1天
+				}
+				console.log(new Date(dsDateTime).toLocaleString());
+				this.list[index].dsDateTime=dsDateTime;//设置下次抢券时间
+			},	getPostBodyList:function(postBodys){
+				if(!postBodys){return false;}
+				let retLists=[];
+				let lists=postBodys.split("&");
+				for(var ipost in lists){
+					let params=lists[ipost].split("=");
+					if(params.length==2){
+						let param={
+							name:params[0],
+							value:decodeURIComponent(params[1])
+						}
+						retLists.push(param);
+					}
+				}
+				//console.log(retLists);
+				return retLists;
+			}
+		} ,
+		computed: {
+
+		}
+	});
+	window.onfocus=function (){
+		vm.loadJdTime(false);
+	};
+</script>
+</html>

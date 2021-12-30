@@ -1,0 +1,165 @@
+html,body{
+    font-size: 16px;
+    background-color: #efefef;
+    height: 100%;
+}
+#wrap{
+    max-width: 1024px;
+    min-height: 100%;
+    background-color: #fff;
+    margin: 0 auto;
+}
+.el-row {
+    margin-bottom: 10px;
+}
+.el-row:last-child{
+    margin-bottom: 0;
+}
+.col_main{
+    margin-left: 4%;
+}
+.col_main .el-button{
+    margin-right: 5px;
+    margin-top: 10px;
+}
+h3{
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 20px;
+}
+.col_list{
+    border: 1px solid lightgray;
+    width: 92%;
+    margin-left: 4%;
+    min-height: 300px;
+}
+.col_title{
+    background-color: #efefef;
+    height: 50px;
+    line-height: 50px;
+    border-bottom: 1px solid lightgray;
+}
+.col_title .el-button{
+    display: inline-block;
+    margin-left: 10px;
+    margin-top: 12px;
+}
+.col_title h4 {
+     font-size:18px;
+    font-weight: bold;
+    display: inline-block;
+    margin-left:5px;
+ }
+.col_list_detail{
+    vertical-align: top;
+}
+.col_list_detail li{
+    margin: 15px;
+    display: inline-block;
+    width: 180px;
+    vertical-align: top;
+}
+.quan_d{
+    height: 102px;
+    width:100%;
+    color: #fff;
+    text-align: center;
+    background-image: url("../../../images/quan.png");
+    background-size: 100% 100%;
+    position: relative;
+}
+.quan_iframe,.quan_iframe iframe{
+    height: 102px;
+    width:180px;
+    background-color: #efefef;
+}
+.quan_d label{
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+.quan_d span{
+    display: block;
+    font-size: 10px;
+    line-height: 14px;
+    height: 14px;
+}
+.quan_d .el-icon-close{
+    color: #fff;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-weight: bold;
+    font-size: 16px;
+}
+.quan_d .el-icon-edit{
+    color: #fff;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    font-size: 16px;
+}
+
+.quan_d .info{
+    display: block;
+    font-size: 10px;
+    line-height: 16px;
+    height: 16px;
+}
+.quan_button{
+}
+.quan_button button{
+    margin-top: 10px;
+}
+.addForm{
+    padding:20px;
+}
+.addForm label{
+    margin-top: 5px;
+}
+.footer{
+    margin-top: 5px;
+    width: 100%;
+    text-align: right;
+}
+.hide{
+    display: none;
+}
+.yzQqlist{
+    margin-top: 20px;
+}
+.yzQqlist li{
+    width: 100%;
+    border-bottom: 1px solid lightgray;
+    height: 50px;
+    margin-top: 5px;
+}
+.yzQqlist .div_left{
+    float: left;
+    width: 61%;
+    margin-left: 4%;
+    height: 50px;
+}
+.yzQqlist .div_left span{
+    font-weight: bold;
+    font-size: 18px;
+    width: 100%;
+}
+.yzQqlist .div_left i{
+    font-size: 14px;
+}
+.yzQqlist .div_right{
+    float: right;
+    width: 34%;
+    text-align: center;
+    height: 50px;
+}
+.yzQqlist .div_right button{
+    margin-top: 10px;
+}
+.cjwt p{
+    margin-top: 4px;
+    line-height: 30px;
+    margin-left: 2px;
+}
